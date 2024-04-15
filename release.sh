@@ -15,7 +15,7 @@ fi
 
 cd backend
 gf build main.go -a amd64 -s linux -p ./temp
-gf docker main.go -p -t chatgpt-share-server-test
+gf docker main.go  -t chatgpt-share-server-test
 now=$(date +"%Y%m%d%H%M%S")
 # 以当前时间为版本号
 # docker tag xyhelper/chatgpt-share-server:latest xyhelper/chatgpt-share-server:$now
