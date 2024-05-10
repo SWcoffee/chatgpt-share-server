@@ -3,8 +3,11 @@ package auth
 import (
 	"backend/config"
 	"backend/utility"
+	"context"
+	"encoding/json"
 
 	"github.com/cool-team-official/cool-admin-go/cool"
+	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -112,6 +115,7 @@ func Login(r *ghttp.Request) {
 			})
 			return
 		} else {
+			checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
 			r.Response.RedirectTo("/")
@@ -144,9 +148,11 @@ func LoginToken(r *ghttp.Request) {
 			return
 		}
 	} else {
+		checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
 		r.Session.Set("usertoken", req["usertoken"])
 		r.Session.Set("carid", req["carid"])
 		if resptype == "json" {
+			checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
 			r.Response.WriteJson(g.Map{
@@ -155,6 +161,7 @@ func LoginToken(r *ghttp.Request) {
 			})
 			return
 		} else {
+			checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
 			r.Response.RedirectTo("/")
@@ -168,4 +175,41 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// 检查用户是否已经登录
+func checkGFSession(ctx context.Context,userToken string,userAgent string) {
+	var result *gvar.Var
+	var err error
+
+	result,err = g.Redis("cool").Do(ctx,"keys","gfsession:*")
+	if err != nil {
+		return
+	}
+	sessionList := make(map[string]string, 10)
+	keys := result.Strings()
+	for _, key := range keys {
+		result, err = g.Redis("cool").Do(ctx, "get", key)
+		if err != nil {
+			return
+		}
+		
+		data := result.String()
+		var sessionData map[string]interface{}
+		if err := json.Unmarshal([]byte(data), &sessionData); err != nil {
+			continue
+		}
+		if usertoken, ok := sessionData["usertoken"]; ok {
+			sessionList[key] = gconv.String(usertoken)
+		}
+	}
+	// 如果userid在sessionList中存在，则清空该session
+	for key, token := range sessionList {
+		if token == userToken {
+			g.Redis("cool").Do(ctx, "set", key,"{}")
+			//g.Redis("cool").Do(ctx, "del", key)
+			g.Log().Info(ctx, "user:", userToken,"|出现多设备登录，删除旧设备|新设备:",userAgent)
+		}
+	}
+
 }

@@ -14,6 +14,7 @@ import (
 
 var (
 	PORT         = 8001
+	LOGINPROXY   = "https://demo.xyhelper.cn"
 	CHATPROXY    = "https://demo.xyhelper.cn"
 	AUTHKEY      = "xyhelper"
 	ArkoseUrl    = "/v2/"
@@ -41,6 +42,13 @@ var (
 
 func init() {
 	ctx := gctx.GetInitCtx()
+
+	loginproxy := g.Cfg().MustGetWithEnv(ctx, "LOGINPROXY").String()
+	if loginproxy != "" {
+		LOGINPROXY = loginproxy
+	}
+	g.Log().Info(ctx, "CHATPROXY:", CHATPROXY)
+
 	chatproxy := g.Cfg().MustGetWithEnv(ctx, "CHATPROXY").String()
 	if chatproxy != "" {
 		CHATPROXY = chatproxy

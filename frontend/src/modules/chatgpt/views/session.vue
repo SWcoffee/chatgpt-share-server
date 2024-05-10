@@ -102,8 +102,12 @@ const Upsert = useUpsert({
 			done();
 			close();
 		} else {
-			alert("请刷新页面，重新验证");
+			// alert("请刷新页面，重新验证");
+			// done();
+			arkoseToken = "";
+			next({ ...data, arkoseToken });
 			done();
+			close();
 		}
 	}
 });
