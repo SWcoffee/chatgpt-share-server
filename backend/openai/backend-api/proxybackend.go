@@ -208,6 +208,9 @@ func ProxyBackendWithCar(r *ghttp.Request) {
 	newreq.URL.Host = u.Host
 	newreq.URL.Scheme = u.Scheme
 	newreq.Host = u.Host
+	// fix gizmos
+	newreq.URL.Path = strings.Replace(newreq.URL.Path, "/g/", "/gizmos/", 1)
+
 	// g.Dump(newreq.Header)
 	newreq.Header.Set("authkey", config.AUTHKEY)
 	proxy.ServeHTTP(r.Response.Writer.RawWriter(), newreq)
