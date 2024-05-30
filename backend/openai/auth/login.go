@@ -5,6 +5,7 @@ import (
 	"backend/utility"
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/cool-team-official/cool-admin-go/cool"
 	"github.com/gogf/gf/v2/container/gvar"
@@ -115,7 +116,14 @@ func Login(r *ghttp.Request) {
 			})
 			return
 		} else {
-			checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			if isAcceed {
+				r.Response.WriteTpl("login.html", g.Map{
+					"error": "今日挤号次数已达到4次，请明天再试！",
+					"carid": req["carid"],
+				})
+				return
+			}
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
 			r.Response.RedirectTo("/")
@@ -148,11 +156,25 @@ func LoginToken(r *ghttp.Request) {
 			return
 		}
 	} else {
-		checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+		isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+		if isAcceed {
+			r.Response.WriteTpl("login.html", g.Map{
+				"error": "今日挤号次数已达到4次，请明天再试！",
+				"carid": req["carid"],
+			})
+			return
+		}
 		r.Session.Set("usertoken", req["usertoken"])
 		r.Session.Set("carid", req["carid"])
 		if resptype == "json" {
-			checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			if isAcceed {
+				r.Response.WriteTpl("login.html", g.Map{
+					"error": "今日挤号次数已达到4次，请明天再试！",
+					"carid": req["carid"],
+				})
+				return
+			}
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
 			r.Response.WriteJson(g.Map{
@@ -161,7 +183,14 @@ func LoginToken(r *ghttp.Request) {
 			})
 			return
 		} else {
-			checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			if isAcceed {
+				r.Response.WriteTpl("login.html", g.Map{
+					"error": "今日挤号次数已达到4次，请明天再试！",
+					"carid": req["carid"],
+				})
+				return
+			}
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
 			r.Response.RedirectTo("/")
@@ -178,9 +207,10 @@ func min(a, b int) int {
 }
 
 // 检查用户是否已经登录
-func checkGFSession(ctx context.Context,userToken string,userAgent string) {
+func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAcceed bool) {
 	var result *gvar.Var
 	var err error
+	isAcceed = false
 
 	result,err = g.Redis("cool").Do(ctx,"keys","gfsession:*")
 	if err != nil {
@@ -210,6 +240,28 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) {
 			//g.Redis("cool").Do(ctx, "del", key)
 			g.Log().Info(ctx, "user:", userToken,"|出现多设备登录，删除旧设备|新设备:",userAgent)
 		}
+
+	}
+	loginTimes,err:= g.Redis("cool").Do(ctx, "get", "login_times:"+userToken)
+	if err != nil {
+		return
+	}
+	now := time.Now()
+	expireTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location()).Unix()
+	
+	if loginTimes == nil {
+		g.Redis("cool").Do(ctx, "set", "login_times:"+userToken, 1)
+		g.Redis("cool").Do(ctx, "expireat", "login_times:"+userToken, expireTime)
+	} else {
+		if loginTimes.Int() > 4 {
+			isAcceed = true
+		}
+		g.Redis("cool").Do(ctx, "set", "login_times:"+userToken, loginTimes.Int()+1)
+		g.Redis("cool").Do(ctx, "expireat", "login_times:"+userToken, expireTime)
+		g.Log().Info(ctx, "user:", userToken, "|登录次数:", loginTimes.Int()+1)
 	}
 
+
+
+	return
 }
