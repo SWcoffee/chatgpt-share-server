@@ -233,15 +233,7 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAc
 			sessionList[key] = gconv.String(usertoken)
 		}
 	}
-	// 如果userid在sessionList中存在，则清空该session
-	for key, token := range sessionList {
-		if token == userToken {
-			g.Redis("cool").Do(ctx, "set", key,"{}")
-			//g.Redis("cool").Do(ctx, "del", key)
-			g.Log().Info(ctx, "user:", userToken,"|出现多设备登录，删除旧设备|新设备:",userAgent)
-		}
 
-	}
 	loginTimes,err:= g.Redis("cool").Do(ctx, "get", "login_times:"+userToken)
 	if err != nil {
 		return
@@ -254,13 +246,24 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAc
 		g.Redis("cool").Do(ctx, "expireat", "login_times:"+userToken, expireTime)
 	} else {
 		if loginTimes.Int() > 4 {
+			// 登录次数超过4次，不再清空cookie
 			isAcceed = true
+			return
 		}
 		g.Redis("cool").Do(ctx, "set", "login_times:"+userToken, loginTimes.Int()+1)
 		g.Redis("cool").Do(ctx, "expireat", "login_times:"+userToken, expireTime)
 		g.Log().Info(ctx, "user:", userToken, "|登录次数:", loginTimes.Int()+1)
 	}
 
+	// 如果userid在sessionList中存在，则清空该session
+	for key, token := range sessionList {
+		if token == userToken {
+			g.Redis("cool").Do(ctx, "set", key,"{}")
+			//g.Redis("cool").Do(ctx, "del", key)
+			g.Log().Info(ctx, "user:", userToken,"|出现多设备登录，删除旧设备|新设备:",userAgent)
+		}
+
+	}
 
 
 	return
