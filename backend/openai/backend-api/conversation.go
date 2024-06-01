@@ -104,7 +104,12 @@ func ConversationPATCH(r *ghttp.Request) {
 	}
 
 	AccessToken := carinfo.AccessToken
+	// 免费账号使用FREEPROXY
 	originUrl := config.CHATPROXY + "/backend-api/conversation/" + conversationId
+	if !carinfo.IsPlus {
+		originUrl = config.FREEPROXY + "/backend-api/conversation/" + conversationId
+	}
+	// originUrl := config.CHATPROXY + "/backend-api/conversation/" + conversationId
 	resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
 		"Authorization":      "Bearer " + AccessToken,
 		"Content-Type":       "application/json",
