@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/util/gconv"
+	"strings"
 )
 
 type ChatgptSessionService struct {
@@ -92,11 +93,11 @@ func (s *ChatgptSessionService) ModifyAfter(ctx g.Ctx, method string, param map[
 		return
 	}
 	email := sessionJson.Get("user.email").String()
-	models := sessionJson.Get("models").Array()
+	// models := sessionJson.Get("models").Array()
 	_, err = cool.DBM(s.Model).Where("carid=?", param["carID"]).Update(g.Map{
 		"email":           email,
 		"officialSession": sessionJson.String(),
-		"isPlus":          len(models) > 1,
+		"isPlus":          strings.Contains(sessionJson.String(), "32767"),
 		"status":          1,
 	})
 	if err != nil {

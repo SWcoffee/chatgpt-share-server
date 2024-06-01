@@ -4,6 +4,7 @@ import (
 	"backend/config"
 	"backend/modules/chatgpt/model"
 	"backend/utility"
+	"strings"
 	"time"
 
 	"github.com/cool-team-official/cool-admin-go/cool"
@@ -79,11 +80,11 @@ func Session(r *ghttp.Request) {
 		r.Response.WriteJson(sessionJson)
 		return
 	}
-	models := sessionJson.Get("models").Array()
+	// models := sessionJson.Get("models").Array()
 	// 更新账号信息
 	cool.DBM(model.NewChatgptSession()).Where("email=?", email).Update(g.Map{
 		"officialSession": sessionJson.String(),
-		"isPlus":          len(models) > 1,
+		"isPlus":          strings.Contains(sessionJson.String(), "32767"),
 		"status":          1,
 	})
 	// 更新缓存

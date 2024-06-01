@@ -1,6 +1,8 @@
 package utility
 
 import (
+	"strings"
+
 	"github.com/cool-team-official/cool-admin-go/cool"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/errors/gerror"
@@ -57,7 +59,7 @@ func CheckCar(ctx g.Ctx, carid string) (carInfo *CarInfo, err error) {
 		err = gerror.New("models is empty")
 		return
 	}
-	carInfo.IsPlus = len(models) > 1
+	carInfo.IsPlus = strings.Contains(sessionJson.String(), "32767")
 	if carInfo.IsPlus {
 		carInfo.IsPlusStr = "PLUS"
 	} else {
