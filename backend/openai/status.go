@@ -89,7 +89,7 @@ func EndPoint(r *ghttp.Request) {
 		labelColor = "purple"
 		lable = "PLUS"
 	} else {
-		lable = "3.5"
+		lable = "4o"
 		labelColor = "blue"
 	}
 	if clears_in > 0 || team_clears_in > 0 {

@@ -63,7 +63,7 @@ func CheckCar(ctx g.Ctx, carid string) (carInfo *CarInfo, err error) {
 	if carInfo.IsPlus {
 		carInfo.IsPlusStr = "PLUS"
 	} else {
-		carInfo.IsPlusStr = "3.5"
+		carInfo.IsPlusStr = "4o"
 	}
 	return
 }
