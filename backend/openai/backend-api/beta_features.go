@@ -33,7 +33,7 @@ func BetaFeatures(r *ghttp.Request) {
 	res, err := g.Client().SetHeaderMap(g.MapStrStr{
 		"Authorization": "Bearer " + carinfo.AccessToken,
 		"User-Agent":    r.Header.Get("User-Agent"),
-	}).Post(ctx, config.CHATPROXY+"/backend-api/settings/beta_features?feature=plugins&value=true")
+	}).Post(ctx, config.GetCHATPROXY(carinfo.IsPlus)+"/backend-api/settings/beta_features?feature=plugins&value=true")
 	if err != nil {
 		g.Log().Error(ctx, err)
 		r.Response.Status = 500

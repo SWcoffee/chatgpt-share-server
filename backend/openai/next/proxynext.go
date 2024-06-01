@@ -29,7 +29,7 @@ func ProxyNext(r *ghttp.Request) {
 		})
 		return
 	}
-	u, _ := url.Parse(config.CHATPROXY)
+	u, _ := url.Parse(config.GetCHATPROXY(carinfo.IsPlus))
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
 		g.Log().Error(ctx, e)

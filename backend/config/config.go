@@ -244,3 +244,12 @@ func CheckVersion(ctx g.Ctx, assetPrefix string) (CacheBuildId string) {
 
 	return
 }
+
+
+// 获取账号代理
+func GetCHATPROXY(isPLus bool) string{
+	if (isPLus){
+		return CHATPROXY
+	}
+	return FREEPROXY
+}

@@ -45,7 +45,7 @@ func GenTitle(r *ghttp.Request) {
 	message_id := reqJson.Get("message_id").String()
 	AccessToken := carinfo.AccessToken
 	id := r.GetRouter("id").String()
-	originUrl := config.CHATPROXY + "/backend-api/conversation/gen_title/" + id
+	originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/gen_title/" + id
 	resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
 		"Authorization":      "Bearer " + AccessToken,
 		"Content-Type":       "application/json",

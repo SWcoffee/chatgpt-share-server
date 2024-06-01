@@ -40,7 +40,7 @@ func Me(r *ghttp.Request) {
 		"Sec-Fetch-Mode":  "cors",
 		"Sec-Fetch-Site":  "same-origin",
 		"User-Agent":      r.Header.Get("User-Agent"),
-	}).Get(ctx, config.CHATPROXY+"/backend-api/me")
+	}).Get(ctx, config.GetCHATPROXY(carinfo.IsPlus)+"/backend-api/me")
 	if err != nil {
 		g.Log().Error(ctx, err)
 		r.Response.Status = 500

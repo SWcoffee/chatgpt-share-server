@@ -104,12 +104,7 @@ func ConversationPATCH(r *ghttp.Request) {
 	}
 
 	AccessToken := carinfo.AccessToken
-	// 免费账号使用FREEPROXY
-	originUrl := config.CHATPROXY + "/backend-api/conversation/" + conversationId
-	if !carinfo.IsPlus {
-		originUrl = config.FREEPROXY + "/backend-api/conversation/" + conversationId
-	}
-	// originUrl := config.CHATPROXY + "/backend-api/conversation/" + conversationId
+	originUrl := config.GetCHATPROXY(carinfo.IsPlus) + "/backend-api/conversation/" + conversationId
 	resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
 		"Authorization":      "Bearer " + AccessToken,
 		"Content-Type":       "application/json",
@@ -253,7 +248,7 @@ func Conversation(r *ghttp.Request) {
 	r.Request.Body = io.NopCloser(bytes.NewReader(gconv.Bytes(body)))
 	AccessToken := carinfo.AccessToken
 
-	u, _ := url.Parse(config.CHATPROXY)
+	u, _ := url.Parse(config.GetCHATPROXY(carinfo.IsPlus))
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
 		g.Log().Error(ctx, e)
