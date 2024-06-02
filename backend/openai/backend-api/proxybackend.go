@@ -34,6 +34,15 @@ func init() {
 	}
 }
 
+func modifyProxy(backendProxy **httputil.ReverseProxy, isPlus bool) {
+	proxyUrl := config.GetCHATPROXY(isPlus)
+	u, _ := url.Parse(proxyUrl)
+	*backendProxy = httputil.NewSingleHostReverseProxy(u)
+	(*backendProxy).ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
+		writer.WriteHeader(http.StatusBadGateway)
+	}
+}
+
 func ProxyBackend(r *ghttp.Request) {
 	ctx := r.GetCtx()
 	// usertoken := r.Session.MustGet("usertoken").String()
@@ -54,6 +63,8 @@ func ProxyBackend(r *ghttp.Request) {
 		r.Header.Set("Authorization", "Bearer "+carinfo.AccessToken)
 	}
 
+	modifyProxy(&backendProxy,carinfo.IsPlus)
+	
 	u, _ := url.Parse(config.GetCHATPROXY(carinfo.IsPlus))
 	newreq := r.Request.Clone(ctx)
 	newreq.URL.Host = u.Host
