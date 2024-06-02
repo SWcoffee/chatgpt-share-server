@@ -5,7 +5,6 @@ import (
 	"backend/modules/chatgpt/model"
 	"backend/utility"
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -296,33 +295,6 @@ func Conversation(r *ghttp.Request) {
 					}).Post(ctx, config.ConversationNotifyUrl, nil)
 					defer res.Close()
 				}()
-			}
-			
-			if proxyResponse.Header.Get("Content-Type") == "text/event-stream" {
-				buf := new(bytes.Buffer)
-				_, err := buf.ReadFrom(proxyResponse.Body)
-				if err != nil {
-					return err
-				}
-		
-				// 重置响应体，以便可以再次读取
-				proxyResponse.Body = io.NopCloser(bytes.NewBuffer(buf.Bytes()))
-				dataLines := bytes.Split(buf.Bytes(), []byte("\n"))
-		
-				for _, line := range dataLines {
-					if bytes.HasPrefix(line, []byte("data:")) {
-						line = bytes.TrimPrefix(line, []byte("data:"))
-						var jsonData map[string]interface{}
-						if err := json.Unmarshal(line, &jsonData); err != nil {
-							g.Log().Debug(ctx, "json.Unmarshal error:", err)
-							continue
-						}
-		
-						if title, found := jsonData["title"]; found {
-							g.Log().Debug(ctx, "title:", title)
-						}
-					}
-				}
 			}
 
 		}
