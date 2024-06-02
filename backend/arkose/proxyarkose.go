@@ -49,7 +49,7 @@ func ProxyArkose(r *ghttp.Request) {
 
 		carid := r.Session.MustGet("carid").String()
 
-		_, err := utility.CheckCar(ctx, carid)
+		carinfo, err := utility.CheckCar(ctx, carid)
 		if err != nil {
 			g.Log().Error(ctx, err)
 			r.Response.Status = 401
@@ -58,6 +58,12 @@ func ProxyArkose(r *ghttp.Request) {
 			})
 			return
 		}
+		
+		// 修改proxy
+		remote, _ := url.Parse(config.GetCHATPROXY(carinfo.IsPlus))
+		Remote = remote
+		proxy = httputil.NewSingleHostReverseProxy(remote)
+		g.Log().Info(ctx, "ProxyArkose-test", path, "--->", remote.String())
 	}
 
 	newreq := r.Request.Clone(ctx)
