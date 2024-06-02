@@ -3,6 +3,7 @@ package backendapi
 import (
 	"backend/config"
 	"backend/modules/chatgpt/model"
+	"backend/ratelimit"
 	"backend/utility"
 	"io"
 	"net/http"
@@ -17,6 +18,21 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/text/gstr"
 )
+
+var (
+	backendProxy *httputil.ReverseProxy
+	// userlimit           = ratelimit.NewRateLimiter(10, 10)
+	chatrequirmentLimit = ratelimit.NewRateLimiter(2, 10)
+)
+
+func init() {
+	u, _ := url.Parse(config.CHATPROXY)
+
+	backendProxy = httputil.NewSingleHostReverseProxy(u)
+	backendProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
+		writer.WriteHeader(http.StatusBadGateway)
+	}
+}
 
 func ProxyBackend(r *ghttp.Request) {
 	ctx := r.GetCtx()
@@ -39,23 +55,30 @@ func ProxyBackend(r *ghttp.Request) {
 	}
 
 	u, _ := url.Parse(config.GetCHATPROXY(carinfo.IsPlus))
-	proxy := httputil.NewSingleHostReverseProxy(u)
-	proxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
-		g.Log().Error(ctx, e)
-		writer.WriteHeader(http.StatusBadGateway)
-	}
 	newreq := r.Request.Clone(ctx)
 	newreq.URL.Host = u.Host
 	newreq.URL.Scheme = u.Scheme
 	newreq.Host = u.Host
 	// g.Dump(newreq.Header)
-	newreq.Header.Set("authkey", config.AUTHKEY)
+	// newreq.Header.Set("authkey", config.AUTHKEY)
+	// g.Log().Debug(ctx, "ProxyBackend", newreq.URL.Path, newreq.URL.RawQuery)
+	// 设置记忆只能关不能开
+	if newreq.URL.Path == "/backend-api/settings/account_user_setting" && newreq.URL.RawQuery == "feature=sunshine&value=true" {
+		newreq.URL.RawQuery = "feature=sunshine&value=false"
+	}
 
-	proxy.ServeHTTP(r.Response.Writer.RawWriter(), newreq)
+	backendProxy.ServeHTTP(r.Response.Writer.RawWriter(), newreq)
 }
 func ProxyBackendWithCar(r *ghttp.Request) {
 	ctx := r.GetCtx()
-	// usertoken := r.Session.MustGet("usertoken").String()
+	usertoken := r.Session.MustGet("usertoken").String()
+	if r.Request.URL.Path == "/backend-api/conversation" && !chatrequirmentLimit.Allow(usertoken) {
+		r.Response.Status = 429
+		r.Response.WriteJson(g.Map{
+			"detail": "Too Many Requests",
+		})
+		return
+	}
 	carid := r.Session.MustGet("carid").String()
 	conv := r.GetRouter("convid").String()
 
