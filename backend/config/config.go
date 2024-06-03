@@ -39,7 +39,9 @@ var (
 	AuditLimitUrl         = ""
 	APIAUTH               = ""
 	DISALLOW_ROAM         = false // 是否禁止漫游
-	FILESERVER            = "https://files.closeai.biz"
+	RAWFILESERVER         = "https://files.oaiusercontent.com"// 原始文件服务器
+	FILESERVER            = "https://files.closeai.biz"       // 代理文件服务器
+	MYSERVER			  = "https://chat.openai.com"         // 本地服务器
 	ConversationNotifyUrl = ""
 	// Generator *badge.Generator
 
@@ -49,6 +51,16 @@ var (
 func init() {
 	ctx := gctx.GetInitCtx()
 
+	rawfileserver := g.Cfg().MustGetWithEnv(ctx, "RAWFILESERVER").String()
+	if rawfileserver != "" {
+		RAWFILESERVER = rawfileserver
+	}
+	g.Log().Info(ctx, "RAWFILESERVER:", RAWFILESERVER)
+	myserver := g.Cfg().MustGetWithEnv(ctx, "MYSERVER").String()
+	if myserver != "" {
+		MYSERVER = myserver
+	}
+	g.Log().Info(ctx, "MYSERVER:", MYSERVER)
 	loginproxy := g.Cfg().MustGetWithEnv(ctx, "LOGINPROXY").String()
 	if loginproxy != "" {
 		LOGINPROXY = loginproxy

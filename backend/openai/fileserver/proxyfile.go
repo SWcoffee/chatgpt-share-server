@@ -1,6 +1,7 @@
 package fileserver
 
 import (
+	"backend/config"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -12,7 +13,7 @@ import (
 func Proxyfile(r *ghttp.Request) {
 	ctx := r.GetCtx()
 	g.Log().Info(ctx, r.Method, r.URL.Path)
-	u, _ := url.Parse("https://files.oaiusercontent.com")
+	u, _ := url.Parse(config.FILESERVER)
 	proxy := httputil.NewSingleHostReverseProxy(u)
 	proxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
 		g.Log().Error(ctx, e)
@@ -22,7 +23,7 @@ func Proxyfile(r *ghttp.Request) {
 	newreq.URL.Host = u.Host
 	newreq.URL.Scheme = u.Scheme
 	newreq.Host = u.Host
-	newreq.Header.Set("Referer", "https://chat.openai.com")
+	newreq.Header.Set("Referer", "https://chatgpt.com/")
 	// g.Dump(newreq.Header)
 	proxy.ServeHTTP(r.Response.Writer.RawWriter(), newreq)
 }
