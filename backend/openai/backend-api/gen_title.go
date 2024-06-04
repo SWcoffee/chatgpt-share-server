@@ -4,9 +4,7 @@ import (
 	"backend/config"
 	"backend/modules/chatgpt/model"
 	"backend/utility"
-	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/cool-team-official/cool-admin-go/cool"
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -47,14 +45,21 @@ func GenTitle(r *ghttp.Request) {
 	message_id := reqJson.Get("message_id").String()
 	AccessToken := carinfo.AccessToken
 	id := r.GetRouter("id").String()
-	originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/gen_title/" + id
+	// originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/gen_title/" + id
+	// resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
+	// 	"Authorization":      "Bearer " + AccessToken,
+	// 	"Content-Type":       "application/json",
+	// 	"ChatGPT-Account-ID": r.Header.Get("ChatGPT-Account-ID"),
+	// }).Post(ctx, originUrl, g.MapStrStr{
+	// 	"message_id": message_id,
+	// })
+	g.Log().Info(ctx, "GenTitle", message_id)
+	originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/" + id
 	resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
 		"Authorization":      "Bearer " + AccessToken,
 		"Content-Type":       "application/json",
 		"ChatGPT-Account-ID": r.Header.Get("ChatGPT-Account-ID"),
-	}).Post(ctx, originUrl, g.MapStrStr{
-		"message_id": message_id,
-	})
+	}).Get(ctx, originUrl)
 	if err != nil {
 		g.Log().Error(ctx, err)
 		r.Response.Status = 500
@@ -65,21 +70,11 @@ func GenTitle(r *ghttp.Request) {
 	}
 	defer resp.Close()
 	r.Response.Status = resp.StatusCode
-	// if resp.StatusCode != 200 {
-	// 	r.Response.Write(resp.ReadAllString())
-	// 	return
-	// }
-	// respBody := resp.ReadAllString()
-	respBody :=`{title:""}`
 	if resp.StatusCode != 200 {
-		// 获取当前时间
-		currentTime := time.Now()
-		// 格式化时间为指定格式
-		formattedTime := currentTime.Format("New Chat 2006-01-02-15-04-05")
-		respBody = fmt.Sprintf(`{title:"%s"}`, formattedTime)
-	} else {
-		respBody = resp.ReadAllString()
+		r.Response.Write(resp.ReadAllString())
+		return
 	}
+	respBody := resp.ReadAllString()
 	respJson := gjson.New(respBody)
 	title := respJson.Get("title").String()
 	if title != "" {
