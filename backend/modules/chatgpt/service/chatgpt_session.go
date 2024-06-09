@@ -71,7 +71,7 @@ func (s *ChatgptSessionService) ModifyAfter(ctx g.Ctx, method string, param map[
 	// 如果没有officialSession，就去获取
 	getSessionUrl := config.LOGINPROXY + "/getsession"
 	sessionVar := g.Client().SetHeader("authkey", config.AUTHKEY).SetCookie("arkoseToken", gconv.String(param["arkoseToken"])).PostVar(ctx, getSessionUrl, g.Map{
-		"username":      param["email"],
+		"email":      param["email"],
 		"password":      param["password"],
 		"authkey":       config.AUTHKEY,
 		"refreshCookie": refreshCookie,
