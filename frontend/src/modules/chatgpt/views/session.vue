@@ -109,7 +109,7 @@ const Upsert = useUpsert({
 			close();
 		} else {
 			if (!data.officialSession) {
-				w.myEnforcement.run();
+				// w.myEnforcement.run();
 				ElMessage({
 					message: "请稍等,人机验证进行中,验证完成后请重新点击确定保存.",
 					type: "warning"
