@@ -46,8 +46,9 @@ func Session(r *ghttp.Request) {
 	if gmlock.TryLock(carid + "-refreshSession") {
 		defer gmlock.Unlock(carid + "-refreshSession")
 
-		getsessionUrl := config.GetCHATPROXY(carinfo.IsPlus) + "/refreshsession"
+		getsessionUrl := config.LOGINPROXY + "/refreshsession"
 		getsessionVar := g.Client().PostVar(ctx, getsessionUrl, g.MapStrStr{
+			"email":         carinfo.Email,
 			"refreshCookie": carinfo.RefreshCookie,
 			"authkey":       config.AUTHKEY,
 		})
