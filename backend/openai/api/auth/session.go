@@ -4,6 +4,7 @@ import (
 	"backend/config"
 	"backend/modules/chatgpt/model"
 	"backend/utility"
+	"strings"
 	"sync"
 	"time"
 
@@ -97,8 +98,9 @@ func Session(r *ghttp.Request) {
 			r.Response.WriteJson(sessionJson)
 			return
 		}
-		models := sessionJson.Get("models").Array()
-		isPlus := len(models) > 1
+		//models := sessionJson.Get("models").Array()
+		// isPlus := len(models) > 1
+		isPlus := strings.Contains(sessionJson.String(), "32767")
 		plan_type := sessionJson.Get("accountCheckInfo.plan_type").String()
 		if plan_type == "free" {
 			isPlus = false
