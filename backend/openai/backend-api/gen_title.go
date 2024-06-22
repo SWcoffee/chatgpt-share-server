@@ -45,21 +45,14 @@ func GenTitle(r *ghttp.Request) {
 	message_id := reqJson.Get("message_id").String()
 	AccessToken := carinfo.AccessToken
 	id := r.GetRouter("id").String()
-	// originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/gen_title/" + id
-	// resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
-	// 	"Authorization":      "Bearer " + AccessToken,
-	// 	"Content-Type":       "application/json",
-	// 	"ChatGPT-Account-ID": r.Header.Get("ChatGPT-Account-ID"),
-	// }).Post(ctx, originUrl, g.MapStrStr{
-	// 	"message_id": message_id,
-	// })
-	g.Log().Info(ctx, "GenTitle", message_id)
-	originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/" + id
+	originUrl := config.GetCHATPROXY(carinfo.IsPlus)+ "/backend-api/conversation/gen_title/" + id
 	resp, err := g.Client().SetAgent(r.Header.Get("User-Agent")).SetHeaderMap(g.MapStrStr{
 		"Authorization":      "Bearer " + AccessToken,
 		"Content-Type":       "application/json",
 		"ChatGPT-Account-ID": r.Header.Get("ChatGPT-Account-ID"),
-	}).Get(ctx, originUrl)
+	}).Post(ctx, originUrl, g.MapStrStr{
+		"message_id": message_id,
+	})
 	if err != nil {
 		g.Log().Error(ctx, err)
 		r.Response.Status = 500
