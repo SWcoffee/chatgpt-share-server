@@ -2,6 +2,7 @@ package auth
 
 import (
 	"backend/config"
+	"backend/modules/chatgpt/model"
 	"backend/utility"
 	"context"
 	"encoding/json"
@@ -39,6 +40,7 @@ func Login(r *ghttp.Request) {
 			return
 		}
 		usertoken := r.Session.MustGet("usertoken").String()
+		// 如果已经登录，直接跳转到聊天页面
 		if usertoken != "" {
 			g.Log().Debug(ctx, "usertoken: ", usertoken)
 			req := g.MapStrStr{
@@ -59,11 +61,12 @@ func Login(r *ghttp.Request) {
 			} else {
 				r.Session.Set("usertoken", usertoken)
 				r.Session.Set("carid", carid)
-				r.Response.RedirectTo("/")
+				// r.Response.RedirectTo("/")
+				RedirectToChat(r, usertoken, carid)
 			}
 
 		}
-
+		// 这边没有登陆
 		var badgeSVG []byte
 
 		count := utility.GetStatsInstance(carid).GetCallCount()
@@ -126,7 +129,9 @@ func Login(r *ghttp.Request) {
 			}
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
-			r.Response.RedirectTo("/")
+			RedirectToChat(r, req["usertoken"], req["carid"])
+			// r.Response.RedirectTo("/")
+
 		}
 	}
 }
@@ -186,14 +191,16 @@ func LoginToken(r *ghttp.Request) {
 			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
 			if isAcceed {
 				r.Response.WriteTpl("login.html", g.Map{
-					"error": "今日挤号次数已达到4次，请明天再试！",
+					"error": "今日挤号次数已达到5次，请明天再试！",
 					"carid": req["carid"],
 				})
 				return
 			}
 			r.Session.Set("usertoken", req["usertoken"])
 			r.Session.Set("carid", req["carid"])
-			r.Response.RedirectTo("/")
+			// r.Response.RedirectTo("/")
+			RedirectToChat(r, req["usertoken"], req["carid"])
+			
 		}
 	}
 }
@@ -267,4 +274,54 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAc
 
 
 	return
+}
+
+
+func RedirectToChat(r *ghttp.Request, usertoken string,carid string) {
+
+	ctx := r.GetCtx()
+
+	carinfo, err := utility.CheckCar(ctx, carid)
+	if err != nil {
+		g.Log().Error(ctx, err)
+		r.Response.WriteJson(g.Map{
+			"code": 0,
+			"msg":  "服务器错误",
+		})
+		return
+	}
+	chat_account := carinfo.Email
+	record, err := cool.DBM(model.NewChatgptUser()).Where("usertoken", usertoken).One()
+	if err != nil {
+		g.Log().Error(ctx, err)
+		r.Response.WriteJson(g.Map{
+			"code": 0,
+			"msg":  "服务器错误",
+		})
+		return
+	}
+	expired_time := gconv.String(record["expireTime"].String())
+	g.Log().Debug(ctx, "expired_time: ", expired_time)
+
+	var loginJson *gjson.Json
+	getloginVar := g.Client().SetHeader("authkey", config.AUTHKEY).PostVar(ctx, config.LOGINPROXY+"/login/get_login_url", g.MapStrStr{
+		"user_account":         usertoken,
+		"chat_account": chat_account,
+		"expired_time": expired_time,
+		"authkey":       config.AUTHKEY,
+	})
+	loginJson = gjson.New(getloginVar)
+	loginJson.Dump()
+
+	loginToken := loginJson.Get("oauth_token").String()
+	if loginToken == "" {
+		r.Response.WriteJson(g.Map{
+			"code": 0,
+			"msg":  "获取登录地址失败",
+		})
+		return
+	}
+	
+	r.Response.RedirectTo(config.HOMEPAGE+loginToken)
+
 }

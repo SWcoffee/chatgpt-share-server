@@ -16,7 +16,7 @@ var (
 	PORT      = 8001
 	CHATPROXY = "https://demo.xyhelper.cn"
 	FREEPROXY = "https://demo.xyhelper.cn"
-	AUTHKEY   = "xyhelper"
+	AUTHKEY   = "test"
 	ArkoseUrl = "/v2/"
 
 	AssetPrefix  = "https://oaistatic-cdn.closeai.biz"
@@ -45,11 +45,18 @@ var (
 	ConversationNotifyUrl = ""
 	// Generator *badge.Generator
 
-	LOGINPROXY   = "https://demo.xyhelper.cn"
+	LOGINPROXY   = "http://localhost:8000"
+	HOMEPAGE	 = "https://new.oaifree.com/auth/login_oauth?token="
 )
 
 func init() {
 	ctx := gctx.GetInitCtx()
+
+	homePage := g.Cfg().MustGetWithEnv(ctx, "HOMEPAGE").String()
+	if homePage != "" {
+		HOMEPAGE = homePage
+	}
+	g.Log().Info(ctx, "HOMEPAGE:", HOMEPAGE)
 
 	rawfileserver := g.Cfg().MustGetWithEnv(ctx, "RAWFILESERVER").String()
 	if rawfileserver != "" {

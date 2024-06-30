@@ -1,6 +1,6 @@
 module backend
 
-go 1.18
+go 1.20
 
 require (
 	github.com/cool-team-official/cool-admin-go/contrib/drivers/mysql v1.5.10

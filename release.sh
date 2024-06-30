@@ -14,12 +14,12 @@ if [ ! -d "./backend/resource/public/xyhelper" ]; then
 fi
 
 cd backend
-gf build main.go -a amd64 -s linux -p ./temp
-gf docker main.go  -t chatgpt-share-server-coffee
+gf build main.go -a arm64 -s linux -p ./temp
+gf docker main.go  -t chat-share
 now=$(date +"%Y%m%d%H%M%S")
 # 以当前时间为版本号
-docker tag chatgpt-share-server-coffee swcoffee/chatgpt-share-server-coffee:latest
-docker push swcoffee/chatgpt-share-server-coffee:latest
+docker tag chat-share swcoffee/chat-share:latest
+docker push swcoffee/chat-share:latest
 echo "release success" $now
 # 写入发布日志 release.log
 echo $now >> ../release.log

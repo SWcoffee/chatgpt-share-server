@@ -17,6 +17,12 @@ func Index(r *ghttp.Request) {
 		// r.Response.Writer.Write([]byte("Hello XyHelper"))
 		return
 	}
+
+	if !r.Session.MustGet("usertoken").IsEmpty(){
+		r.Response.RedirectTo("/list")
+		return
+	}
+
 	model := r.Get("model").String()
 
 	propsJson := gjson.New(Props)
