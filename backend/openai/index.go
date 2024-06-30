@@ -2,6 +2,7 @@ package openai
 
 import (
 	"backend/config"
+	"backend/utility"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
@@ -19,8 +20,18 @@ func Index(r *ghttp.Request) {
 	}
 
 	if !r.Session.MustGet("usertoken").IsEmpty(){
-		r.Response.RedirectTo("/list")
-		return
+
+		carid := r.Session.MustGet("carid").String()
+		carinfo, err := utility.CheckCar(ctx, carid)
+		if err != nil {
+			g.Log().Error(ctx, err)
+			r.Response.RedirectTo("/list")
+			return
+		}
+		if !(carinfo.IsPlus) {
+			r.Response.RedirectTo("/list")
+			return
+		}
 	}
 
 	model := r.Get("model").String()

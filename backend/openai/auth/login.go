@@ -290,6 +290,14 @@ func RedirectToChat(r *ghttp.Request, usertoken string,carid string) {
 		})
 		return
 	}
+
+	// 如果是plus直接进入
+	if carinfo.IsPlus{
+		r.Response.RedirectTo("/")
+	}
+
+
+
 	chat_account := carinfo.Email
 	record, err := cool.DBM(model.NewChatgptUser()).Where("usertoken", usertoken).One()
 	if err != nil {
