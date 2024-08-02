@@ -20,8 +20,8 @@ var (
 	ArkoseUrl = "/v2/"
 
 	AssetPrefix  = "https://oaistatic-cdn.closeai.biz"
-	BuildId      = "-wRE4Obkm_QOW7PLn1x21"
-	CacheBuildId = "-wRE4Obkm_QOW7PLn1x21"
+	BuildId      = "G0tXPtrLNYAsDO-Caaxdc"
+	CacheBuildId = "G0tXPtrLNYAsDO-Caaxdc"
 	Script       = "https://cdn.oaistatic.com/_next/static/chunks/2565-263427db2ed7a61a.js?dpl=37f91bfd782f6b4fb81dd5cd885a42d5d31cc4a3"
 	Dpl          = "dpl=37f91bfd782f6b4fb81dd5cd885a42d5d31cc4a3"
 	envScriptTpl = `
@@ -38,19 +38,25 @@ var (
 	OauthUrl              = ""
 	AuditLimitUrl         = ""
 	APIAUTH               = ""
-	DISALLOW_ROAM         = false // 是否禁止漫游
-	RAWFILESERVER         = "https://files.oaiusercontent.com"// 原始文件服务器
-	FILESERVER            = "https://files.closeai.biz"       // 代理文件服务器
-	MYSERVER			  = "https://chat.openai.com"         // 本地服务器
+	DISALLOW_ROAM         = false                              // 是否禁止漫游
+	RAWFILESERVER         = "https://files.oaiusercontent.com" // 原始文件服务器
+	FILESERVER            = "https://files.closeai.biz"        // 代理文件服务器
+	MYSERVER              = "https://chat.openai.com"          // 本地服务器
 	ConversationNotifyUrl = ""
 	// Generator *badge.Generator
 
-	LOGINPROXY   = "http://localhost:8000"
-	HOMEPAGE	 = "https://new.oaifree.com/auth/login_oauth?token="
+	LOGINPROXY = "http://localhost:8000"
+	HOMEPAGE   = "https://a.chatgpt.com/auth/login_oauth?token="
+	CLAUDEPAGE = "https://chatc.hicafes.com/login_oauth?token"
 )
 
 func init() {
 	ctx := gctx.GetInitCtx()
+
+	claudepage := g.Cfg().MustGetWithEnv(ctx, "CLAUDEPAGE").String()
+	if claudepage != "" {
+		CLAUDEPAGE = claudepage
+	}
 
 	homePage := g.Cfg().MustGetWithEnv(ctx, "HOMEPAGE").String()
 	if homePage != "" {
@@ -82,9 +88,9 @@ func init() {
 	freeproxy := g.Cfg().MustGetWithEnv(ctx, "FREEPROXY").String()
 	if freeproxy != "" {
 		FREEPROXY = freeproxy
-	} else{
+	} else {
 		FREEPROXY = CHATPROXY
-	
+
 	}
 	g.Log().Info(ctx, "FREEPROXY:", FREEPROXY)
 
@@ -264,10 +270,9 @@ func CheckVersion(ctx g.Ctx, assetPrefix string) (CacheBuildId string) {
 	return
 }
 
-
 // 获取账号代理
-func GetCHATPROXY(isPLus bool) string{
-	if (isPLus){
+func GetCHATPROXY(isPLus bool) string {
+	if isPLus {
 		return CHATPROXY
 	}
 	return FREEPROXY

@@ -6,6 +6,7 @@ import (
 	"backend/utility"
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/cool-team-official/cool-admin-go/cool"
@@ -119,7 +120,7 @@ func Login(r *ghttp.Request) {
 			})
 			return
 		} else {
-			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			isAcceed := checkGFSession(ctx, req["usertoken"], r.Header.Get("User-Agent"))
 			if isAcceed {
 				r.Response.WriteTpl("login.html", g.Map{
 					"error": "今日挤号次数已达到4次，请明天再试！",
@@ -161,7 +162,7 @@ func LoginToken(r *ghttp.Request) {
 			return
 		}
 	} else {
-		isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+		isAcceed := checkGFSession(ctx, req["usertoken"], r.Header.Get("User-Agent"))
 		if isAcceed {
 			r.Response.WriteTpl("login.html", g.Map{
 				"error": "今日挤号次数已达到4次，请明天再试！",
@@ -172,7 +173,7 @@ func LoginToken(r *ghttp.Request) {
 		r.Session.Set("usertoken", req["usertoken"])
 		r.Session.Set("carid", req["carid"])
 		if resptype == "json" {
-			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			isAcceed := checkGFSession(ctx, req["usertoken"], r.Header.Get("User-Agent"))
 			if isAcceed {
 				r.Response.WriteTpl("login.html", g.Map{
 					"error": "今日挤号次数已达到4次，请明天再试！",
@@ -188,7 +189,7 @@ func LoginToken(r *ghttp.Request) {
 			})
 			return
 		} else {
-			isAcceed:=checkGFSession(ctx,req["usertoken"],r.Header.Get("User-Agent"))
+			isAcceed := checkGFSession(ctx, req["usertoken"], r.Header.Get("User-Agent"))
 			if isAcceed {
 				r.Response.WriteTpl("login.html", g.Map{
 					"error": "今日挤号次数已达到5次，请明天再试！",
@@ -200,7 +201,7 @@ func LoginToken(r *ghttp.Request) {
 			r.Session.Set("carid", req["carid"])
 			// r.Response.RedirectTo("/")
 			RedirectToChat(r, req["usertoken"], req["carid"])
-			
+
 		}
 	}
 }
@@ -214,12 +215,12 @@ func min(a, b int) int {
 }
 
 // 检查用户是否已经登录
-func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAcceed bool) {
+func checkGFSession(ctx context.Context, userToken string, userAgent string) (isAcceed bool) {
 	var result *gvar.Var
 	var err error
 	isAcceed = false
 
-	result,err = g.Redis("cool").Do(ctx,"keys","gfsession:*")
+	result, err = g.Redis("cool").Do(ctx, "keys", "gfsession:*")
 	if err != nil {
 		return
 	}
@@ -230,7 +231,7 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAc
 		if err != nil {
 			return
 		}
-		
+
 		data := result.String()
 		var sessionData map[string]interface{}
 		if err := json.Unmarshal([]byte(data), &sessionData); err != nil {
@@ -241,13 +242,13 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAc
 		}
 	}
 
-	loginTimes,err:= g.Redis("cool").Do(ctx, "get", "login_times:"+userToken)
+	loginTimes, err := g.Redis("cool").Do(ctx, "get", "login_times:"+userToken)
 	if err != nil {
 		return
 	}
 	now := time.Now()
 	expireTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location()).Unix()
-	
+
 	if loginTimes == nil {
 		g.Redis("cool").Do(ctx, "set", "login_times:"+userToken, 1)
 		g.Redis("cool").Do(ctx, "expireat", "login_times:"+userToken, expireTime)
@@ -265,19 +266,17 @@ func checkGFSession(ctx context.Context,userToken string,userAgent string) (isAc
 	// 如果userid在sessionList中存在，则清空该session
 	for key, token := range sessionList {
 		if token == userToken {
-			g.Redis("cool").Do(ctx, "set", key,"{}")
+			g.Redis("cool").Do(ctx, "set", key, "{}")
 			//g.Redis("cool").Do(ctx, "del", key)
-			g.Log().Info(ctx, "user:", userToken,"|出现多设备登录，删除旧设备|新设备:",userAgent)
+			g.Log().Info(ctx, "user:", userToken, "|出现多设备登录，删除旧设备|新设备:", userAgent)
 		}
 
 	}
 
-
 	return
 }
 
-
-func RedirectToChat(r *ghttp.Request, usertoken string,carid string) {
+func RedirectToChat(r *ghttp.Request, usertoken string, carid string) {
 
 	ctx := r.GetCtx()
 
@@ -292,13 +291,12 @@ func RedirectToChat(r *ghttp.Request, usertoken string,carid string) {
 	}
 
 	// 如果是plus直接进入
-	if carinfo.IsPlus{
+	if carinfo.IsPlus {
 		r.Response.RedirectTo("/")
 	}
 
-
-
 	chat_account := carinfo.Email
+
 	record, err := cool.DBM(model.NewChatgptUser()).Where("usertoken", usertoken).One()
 	if err != nil {
 		g.Log().Error(ctx, err)
@@ -313,10 +311,11 @@ func RedirectToChat(r *ghttp.Request, usertoken string,carid string) {
 
 	var loginJson *gjson.Json
 	getloginVar := g.Client().SetHeader("authkey", config.AUTHKEY).PostVar(ctx, config.LOGINPROXY+"/login/get_login_url", g.MapStrStr{
-		"user_account":         usertoken,
+		"user_account": usertoken,
 		"chat_account": chat_account,
 		"expired_time": expired_time,
-		"authkey":       config.AUTHKEY,
+		"authkey":      config.AUTHKEY,
+		"car_id":       carinfo.Carid,
 	})
 	loginJson = gjson.New(getloginVar)
 	loginJson.Dump()
@@ -329,7 +328,11 @@ func RedirectToChat(r *ghttp.Request, usertoken string,carid string) {
 		})
 		return
 	}
-	
-	r.Response.RedirectTo(config.HOMEPAGE+loginToken)
+
+	if strings.Contains(carinfo.Carid, "Claude") {
+		r.Response.RedirectTo(config.CLAUDEPAGE + loginToken)
+	} else {
+		r.Response.RedirectTo(config.HOMEPAGE + loginToken)
+	}
 
 }
