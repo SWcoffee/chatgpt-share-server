@@ -20,10 +20,10 @@ var (
 	ArkoseUrl = "/v2/"
 
 	AssetPrefix  = "https://oaistatic-cdn.closeai.biz"
-	BuildId      = "G0tXPtrLNYAsDO-Caaxdc"
-	CacheBuildId = "G0tXPtrLNYAsDO-Caaxdc"
-	Script       = "https://cdn.oaistatic.com/_next/static/chunks/2565-263427db2ed7a61a.js?dpl=37f91bfd782f6b4fb81dd5cd885a42d5d31cc4a3"
-	Dpl          = "dpl=37f91bfd782f6b4fb81dd5cd885a42d5d31cc4a3"
+	BuildId      = "t7LRZmHZXFkr0rNlyO8xB"
+	CacheBuildId = "t7LRZmHZXFkr0rNlyO8xB"
+	Script       = "https://cdn.oaistatic.com/_next/static/chunks/polyfills-78c92fac7aa8fdd8.js"
+	Dpl          = "c/t7LRZmHZXFkr0rNlyO8xB/_"
 	envScriptTpl = `
 	<script src="/jquery.min.js"></script>
 	<script src="/list.js"></script>
