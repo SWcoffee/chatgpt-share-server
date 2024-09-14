@@ -291,7 +291,7 @@ func RedirectToChat(r *ghttp.Request, usertoken string, carid string) {
 	}
 
 	// 如果是plus并且包含newplus关键字直接进入
-	if carinfo.IsPlus && strings.Contains(carinfo.Carid, "newplus") {
+	if carinfo.IsPlus && !strings.Contains(carinfo.Email, "newplus") {
 		r.Response.RedirectTo("/")
 	}
 
